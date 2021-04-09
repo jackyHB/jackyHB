@@ -4,8 +4,7 @@ QX:
 [mitm]
 hostname = awmattack.*.com
 
-涓嬭浇鍦板潃
-鍜摡瑙嗛:
+下载地址:
 http://69n1.cn
 http://neihan4871.com
 
