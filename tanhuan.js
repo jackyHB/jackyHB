@@ -1,4 +1,6 @@
-
+QX:
+[rewrite_local]
+^https:\/\/awmattack\.(.+)\.com\/(api/member/info|api/video/video/video_play) url script-response-body https://raw.githubusercontent.com/jackyHB/jackyHB/main/tanhuan.js
 [mitm]
 hostname = awmattack.*.com
 
