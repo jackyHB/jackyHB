@@ -1,3 +1,5 @@
+[mitm]
+hostname= awmattack.ldxfej.com
 var body = {
   "status" : "200",
   "msg" : "返回成功",
