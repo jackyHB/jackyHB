@@ -1,11 +1,32 @@
-[mitm]
-hostname= awmattack.ldxfej.com
 
-body = $response.body.replace(/vip":0/g, 'vip":1').
-replace(/vip_expire":0/g, 'vip_expire":"2022-01-01"').
-replace(/coin":0/g, 'coin":888').
-replace(/qp_money":0/g, 'qp_money":999').
-replace(/short_watch_time":0/g, 'short_watch_time":2022-12-22').
-replace(/watch_time:0/g, 'watch_time":2023-2-12)
+[mitm]
+hostname = awmattack.*.com
+
+涓嬭浇鍦板潃
+鍜摡瑙嗛:
+http://69n1.cn
+http://neihan4871.com
+
+*/
+var body = $response.body;
+var url = $request.url;
+var obj = JSON.parse(body);
+
+const a = '/api/member/info';
+const b = '/api/video/video/video_play';
+
+if (url.indexOf(a) != -1) {
+    obj.data.item.vip = 1,
+    obj.data.item.vip_expire = 4092647115,
+    obj.data.item.coin = 999880,
+    obj.data.item.nick = "By：H.  ",
+    body = JSON.stringify(obj);
+}
+if (url.indexOf(b) != -1) {
+    obj.data.vip = 0,
+    obj.data.price = 0,
+    body = JSON.stringify(obj);
+}
+
 
 $done({body});
