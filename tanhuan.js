@@ -1,34 +1,24 @@
-QX:
+圈X
 [rewrite_local]
-^https:\/\/awmattack\.(.+)\.com\/(api/member/info|api/video/video/video_play) url script-response-body https://raw.githubusercontent.com/jackyHB/jackyHB/main/tanhuan.js
+#辣椒视频解锁会员
+^http:\/\/jk\.5apk\.cn\/api(\/reg|\/play) url script-response-body https://raw.githubusercontent.com/jackyHB/jackyHB/main/tanhuan.js
+
 
 [mitm]
-hostname = awmattack.*.com
+hostname= jk.5apk.cn
 
-下载地址:
-http://69n1.cn
-http://neihan4871.com
+下载地址：http://sdfvs.cxfbhy.live/?code=67JALF
+
 
 */
-var body = $response.body;
-var url = $request.url;
-var obj = JSON.parse(body);
 
-const a = '/api/member/info';
-const b = '/api/video/video/video_play';
 
-if (url.indexOf(a) != -1) {
-    obj.data.item.vip = 1,
-    obj.data.item.vip_expire = 4092647115,
-    obj.data.item.coin = 999880,
-    obj.data.item.nick = "By：H.  ",
-    body = JSON.stringify(obj);
-}
-if (url.indexOf(b) != -1) {
-    obj.data.vip = 0,
-    obj.data.price = 0,
-    body = JSON.stringify(obj);
-}
 
+body = $response.body.replace(/is_vip":0/g, 'is_vip":1').
+replace(/vip_date":null/g, 'vip_date":"2022-01-01"').
+replace(/level_id":\d/g, 'level_id":6').
+replace(/isplayed":0/g, 'isplayed":1').
+replace(/dltime":\d+/g, 'dltime":1').
+replace(/notMore":1/g, 'notMore":0')
 
 $done({body});
