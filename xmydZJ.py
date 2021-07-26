@@ -1,5 +1,5 @@
 /*
-21 18 * * *
+cron 21 18 * * *
 */
 # -*- coding: utf8 -*-
 import requests
