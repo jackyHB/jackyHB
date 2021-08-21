@@ -4,8 +4,8 @@
 import requests,time,re,json,random
 import os
 
-TG_BOT_TOKEN = ""           # telegram bot token 自行申请
-TG_USER_ID = ""             # telegram 用户ID
+TG_BOT_TOKEN = "1638464247:AAEYiayBs697qsQ63EWtfKdOQF0eID6RyAc"           # telegram bot token 自行申请
+TG_USER_ID = "1278842399"             # telegram 用户ID
 
 def telegram_bot(title, content):
     print("\n")
