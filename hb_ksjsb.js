@@ -1,30 +1,933 @@
-/*
-IOS/安卓： 快手极速版
+const $ = new Env('快手极速版低保');
+let res,
+  ksjsbCookie = process.env.ksjsbCookie || '',
+  Users = [],
+  ksjsbCash = process.env.ksjsbCash || '',
+  ksjsbWithdrawTime = process.env.ksjsbWithdrawTime || 15,
+  ksjsbAggressive = process.env.ksjsbAggressive || 0,
+  ksjsbNotify = process.env.ksjsbNotify || 1,
+  index = 0,
+  count = 0;
 
-已实现的：签到和翻倍，开宝箱和翻倍，看广告任务，逛街任务，抽奖和翻倍，广告任务，分享任务
-金币每天0点自动兑换到现金余额
 
-V2P和圈X配置好重写后，应该打开APP就能获取到CK，获取不到的话升级下app或者手动捉包
-青龙把任意包里的kuaishou.api_st=xxxxxxxxxxxx;这一串东西放到变量ksjsbCookie里，多账户换行或者用@隔开
-export ksjsbCookie='kuaishou.api_st=xxxxxxxxxxxx;
-kuaishou.api_st=yyyyyyyyy;'
 
-默认每天15点提现，要改的话把提现时间填到变量ksjsbWithdrawTime里
-默认按照账户的提现列表从高到低提现到绑定的提现账号，都有绑定的话默认提现到支付宝。要固定提现金额的话填到变量ksjsbCash里。如果提现失败，手动接验证码提现一次
-默认提现时间会触发通知，可以把ksjsbNotify设置成2改为每次运行都通知，ksjsbNotify设置为0则不通知
 
-定时一天最少10次就行，最好改掉默认时间，不然太多人同一时间跑
+//let curHours = new Date().getHours();
+class ksUser {
+  constructor(cookie) {
+    let api_st = cookie.match(/(kuaishou.api_st=[\w\-]+)/)[1] + ';';
 
-重写：
-[task_local]
-#快手极速版
-38 3-15 * * * https://raw.githubusercontent.com/leafxcy/JavaScript/main/ksjsb.js, tag=快手极速版, enabled=true
-[rewrite_local]
-appsupport/yoda/biz/info url script-request-header https://raw.githubusercontent.com/leafxcy/JavaScript/main/ksjsb.js
-ksapp/client/package/renew url script-request-header https://raw.githubusercontent.com/leafxcy/JavaScript/main/ksjsb.js
-[MITM]
-#IOS用第一个，安卓用第二个
-hostname = api.kuaisho*.com
-hostname = open.kuaisho*.com
-*/
-const _0x5a7b28=_0xd687;(function(_0x3943ad,_0x304dfb){const _0xd35403=_0xd687,_0x40ab74=_0x3943ad();while(!![]){try{const _0x364255=-parseInt(_0xd35403(0x219))/(-0x25*0xed+-0x8bf+0x2b01)*(-parseInt(_0xd35403(0x1d7))/(0xc2a+0x5*0x65b+0x3*-0xea5))+parseInt(_0xd35403(0x1d3))/(-0x1f88+-0x1a7d*0x1+0x6*0x9ac)*(-parseInt(_0xd35403(0x3ed))/(-0x7e0+0x2*-0x1d6+0x128*0xa))+-parseInt(_0xd35403(0x58b))/(0x1dc*0xb+-0x1*-0x2622+-0x3a91)*(-parseInt(_0xd35403(0x5ce))/(-0xa7*-0x1e+0x10f*-0x16+0x3be))+-parseInt(_0xd35403(0x458))/(-0x112*0x19+0x1f9*0xe+-0x3*0x47)*(-parseInt(_0xd35403(0x3ff))/(0x1*0x2009+0xdcf+-0x2dd0))+parseInt(_0xd35403(0x5e5))/(-0xf3+-0x38*0x16+0x5cc)*(-parseInt(_0xd35403(0x2af))/(-0x40*0x5e+0x2*-0xa7+0x18d8))+-parseInt(_0xd35403(0x607))/(0x2278+0x233f+-0x45ac)+-parseInt(_0xd35403(0x26a))/(-0x221*-0x9+-0x12fb+0x22*-0x1)*(parseInt(_0xd35403(0x480))/(0x2*-0x15a+-0x197f+-0x388*-0x8));if(_0x364255===_0x304dfb)break;else _0x40ab74['push'](_0x40ab74['shift']());}catch(_0x2523cf){_0x40ab74['push'](_0x40ab74['shift']());}}}(_0x28fa,-0xc43b5+0xa*-0x4bf2+0x1c3702));const _0x5b92cd='\u5feb\u624b\u6781\u901f\u7248',_0x1d0946=new _0x3c308a(_0x5b92cd),_0x4e6759=0x2386+0x16e7+-0x3a6d;let _0x13d399='',_0x3af722,_0x2cf05e=['\x0a','\x40'],_0x398085=(_0x1d0946[_0x5a7b28(0x6cb)+'\x65']()?process[_0x5a7b28(0x686)][_0x5a7b28(0x780)+_0x5a7b28(0x1f5)+'\x65']:_0x1d0946[_0x5a7b28(0x5a6)+'\x74\x61'](_0x5a7b28(0x780)+'\x43\x6f\x6f\x6b\x69'+'\x65'))||'',_0x1a9ac2=[],_0x403a7e=(_0x1d0946[_0x5a7b28(0x6cb)+'\x65']()?process['\x65\x6e\x76']['\x6b\x73\x6a\x73\x62'+'\x43\x61\x73\x68']:_0x1d0946['\x67\x65\x74\x76\x61'+'\x6c']('\x6b\x73\x6a\x73\x62'+_0x5a7b28(0x617)))||'',_0x380376=(_0x1d0946['\x69\x73\x4e\x6f\x64'+'\x65']()?process['\x65\x6e\x76']['\x6b\x73\x6a\x73\x62'+_0x5a7b28(0x576)+_0x5a7b28(0x29a)+'\x6d\x65']:_0x1d0946[_0x5a7b28(0x243)+'\x6c']('\x6b\x73\x6a\x73\x62'+_0x5a7b28(0x576)+_0x5a7b28(0x29a)+'\x6d\x65'))||0x1*-0x1a81+-0x1b2e+-0x6*-0x8f5,_0x11e624=(_0x1d0946[_0x5a7b28(0x6cb)+'\x65']()?process[_0x5a7b28(0x686)][_0x5a7b28(0x780)+_0x5a7b28(0x5e8)+'\x79']:_0x1d0946[_0x5a7b28(0x243)+'\x6c']('\x6b\x73\x6a\x73\x62'+_0x5a7b28(0x5e8)+'\x79'))||0x1*-0x821+-0x192a+0x214c,_0xed380d=0x8*-0x356+-0x1d0d+0x37bd*0x1,_0x4c37a2=0x1e7c+0x6ec+-0x2568,_0x474541=-0x5b+0x1*0x130d+-0x12ae,_0x488265=0x1a7d+0xa15*-0x2+-0x644,_0x1ffe63=[];const _0x2fdd03={};_0x2fdd03['\x69\x64']=0x0,_0x2fdd03[_0x5a7b28(0x764)]='\u5e7f\u544a\u89c6\u9891';const _0x3560c9={};_0x3560c9['\x69\x64']=0x31,_0x3560c9[_0x5a7b28(0x764)]=_0x5a7b28(0x5f8);const _0x3f3867={};_0x3f3867['\x69\x64']=0x4d,_0x3f3867[_0x5a7b28(0x764)]=_0x5a7b28(0x3d8)+'\u9891';const _0x89e72f={};_0x89e72f['\x69\x64']=0x88,_0x89e72f[_0x5a7b28(0x764)]='\u7b7e\u5230\u7ffb\u500d\u89c6'+'\u9891\x31';const _0xf1d5ed={};_0xf1d5ed['\x69\x64']=0x97,_0xf1d5ed[_0x5a7b28(0x764)]=_0x5a7b28(0x503);const _0xf931b1={};_0xf931b1['\x61\x64\x31']=_0x2fdd03,_0xf931b1['\x61\x64\x32']=_0x3560c9,_0xf931b1[_0x5a7b28(0x2dc)]=_0x3f3867,_0xf931b1[_0x5a7b28(0x3cd)]=_0x89e72f,_0xf931b1[_0x5a7b28(0x423)+_0x5a7b28(0x5b0)]=_0xf1d5ed;let _0x386760=_0xf931b1;const _0x59edc4={};_0x59edc4['\x61\x64']=0x31,_0x59edc4['\x6c\x69\x76\x65']=0x4b,_0x59edc4[_0x5a7b28(0x5ea)+'\x64\x72\x61\x77']=0xa1,_0x59edc4['\x67\x6a']=0xd9,_0x59edc4[_0x5a7b28(0x4c4)+'\x65']='\x69\x6e\x76\x69\x74'+'\x65';let _0x4b8440=_0x59edc4;const _0x30b969={};_0x30b969[_0x5a7b28(0x402)+_0x5a7b28(0x4c8)]=_0x5a7b28(0x736)+_0x5a7b28(0x737)+_0x5a7b28(0x7a2)+_0x5a7b28(0x404)+_0x5a7b28(0x325)+'\x39\x37\x32\x32\x37'+_0x5a7b28(0x707)+_0x5a7b28(0x1f1)+_0x5a7b28(0x4bd)+_0x5a7b28(0x26d)+'\x36\x30\x30\x36\x65'+_0x5a7b28(0x65b)+'\x63\x31\x30\x34\x30'+_0x5a7b28(0x722)+_0x5a7b28(0x374)+'\x63\x34\x36\x30\x65'+_0x5a7b28(0x2d2)+'\x63\x63\x34\x38\x37'+_0x5a7b28(0x45d)+_0x5a7b28(0x29c)+_0x5a7b28(0x65c)+_0x5a7b28(0x280)+'\x36\x33\x30\x30\x32'+_0x5a7b28(0x358)+_0x5a7b28(0x4cf)+_0x5a7b28(0x41c)+'\x66\x61\x36\x35\x38'+'\x31\x35\x64\x31\x61'+_0x5a7b28(0x3b1)+_0x5a7b28(0x40c)+'\x30\x33\x34\x62\x31'+_0x5a7b28(0x54b),_0x30b969[_0x5a7b28(0x613)+_0x5a7b28(0x262)]=0xa1,_0x30b969[_0x5a7b28(0x5c1)+'\x64']=0x2b5d,_0x30b969[_0x5a7b28(0x346)]=0x124b,_0x30b969[_0x5a7b28(0x3ca)+_0x5a7b28(0x656)]=0x5f6163c,_0x30b969['\x6e\x61\x6d\x65']=_0x5a7b28(0x21e)+_0x5a7b28(0x5de);const _0x50acc5={};_0x50acc5[_0x5a7b28(0x402)+_0x5a7b28(0x4c8)]=_0x5a7b28(0x736)+'\x33\x31\x35\x39\x34'+_0x5a7b28(0x7a2)+_0x5a7b28(0x404)+_0x5a7b28(0x325)+'\x39\x37\x32\x32\x37'+_0x5a7b28(0x560)+'\x39\x64\x61\x30\x30'+_0x5a7b28(0x6d1)+'\x34\x64\x66\x38\x38'+'\x33\x30\x61\x35\x37'+_0x5a7b28(0x521)+'\x37\x64\x37\x63\x66'+_0x5a7b28(0x1e3)+_0x5a7b28(0x72c)+_0x5a7b28(0x6e1)+_0x5a7b28(0x51e)+_0x5a7b28(0x658)+_0x5a7b28(0x35f)+_0x5a7b28(0x394)+'\x37\x36\x35\x61\x38'+'\x36\x37\x63\x33\x38'+'\x35\x36\x38\x35\x65'+'\x30\x35\x37\x30\x65'+_0x5a7b28(0x47b)+_0x5a7b28(0x237)+_0x5a7b28(0x3f9)+_0x5a7b28(0x372)+'\x65\x34\x61\x39\x38'+_0x5a7b28(0x20e)+'\x65\x36\x31\x39\x61'+_0x5a7b28(0x58e),_0x50acc5[_0x5a7b28(0x613)+_0x5a7b28(0x262)]=0xa1,_0x50acc5[_0x5a7b28(0x5c1)+'\x64']=0x2b5d,_0x50acc5['\x70\x6f\x73\x49\x64']=0x124d,_0x50acc5['\x73\x75\x62\x50\x61'+_0x5a7b28(0x656)]=0x5f6163e,_0x50acc5[_0x5a7b28(0x764)]=_0x5a7b28(0x571)+'\u9891\x31';const _0x13f7b0={};_0x13f7b0[_0x5a7b28(0x402)+'\x72\x61\x6d\x73']=_0x5a7b28(0x736)+_0x5a7b28(0x737)+'\x62\x38\x35\x38\x65'+_0x5a7b28(0x404)+'\x31\x33\x66\x35\x65'+_0x5a7b28(0x781)+_0x5a7b28(0x560)+_0x5a7b28(0x38b)+'\x61\x61\x35\x31\x34'+'\x34\x64\x66\x38\x38'+_0x5a7b28(0x4f4)+_0x5a7b28(0x521)+_0x5a7b28(0x769)+_0x5a7b28(0x1e3)+_0x5a7b28(0x72c)+_0x5a7b28(0x6e1)+'\x35\x30\x66\x39\x39'+_0x5a7b28(0x658)+_0x5a7b28(0x35f)+_0x5a7b28(0x394)+_0x5a7b28(0x68b)+_0x5a7b28(0x20a)+_0x5a7b28(0x328)+_0x5a7b28(0x4be)+_0x5a7b28(0x47b)+_0x5a7b28(0x237)+_0x5a7b28(0x3f9)+_0x5a7b28(0x372)+_0x5a7b28(0x49a)+_0x5a7b28(0x20e)+_0x5a7b28(0x600)+_0x5a7b28(0x58e),_0x13f7b0[_0x5a7b28(0x613)+_0x5a7b28(0x262)]=0xb,_0x13f7b0['\x70\x61\x67\x65\x49'+'\x64']=0x5f61024,_0x13f7b0['\x70\x6f\x73\x49\x64']=0x1a6d,_0x13f7b0[_0x5a7b28(0x3ca)+_0x5a7b28(0x656)]=0x5f61bf1,_0x13f7b0[_0x5a7b28(0x764)]=_0x5a7b28(0x571)+'\u9891\x32';function _0xd687(_0x247ac7,_0x2af7c5){const _0x116f35=_0x28fa();return _0xd687=function(_0x1c4e08,_0x46f5e5){_0x1c4e08=_0x1c4e08-(0x7a7+0x26a8+0x146*-0x23);let _0x40bb4d=_0x116f35[_0x1c4e08];return _0x40bb4d;},_0xd687(_0x247ac7,_0x2af7c5);}const _0x38b59d={};_0x38b59d[_0x5a7b28(0x402)+_0x5a7b28(0x4c8)]=_0x5a7b28(0x736)+_0x5a7b28(0x737)+'\x62\x38\x35\x38\x65'+_0x5a7b28(0x404)+_0x5a7b28(0x325)+'\x39\x37\x32\x32\x37'+_0x5a7b28(0x3f1)+_0x5a7b28(0x34b)+_0x5a7b28(0x4a0)+_0x5a7b28(0x789)+_0x5a7b28(0x27e)+_0x5a7b28(0x53a)+_0x5a7b28(0x2c2)+_0x5a7b28(0x29b)+_0x5a7b28(0x525)+_0x5a7b28(0x272)+_0x5a7b28(0x6c8)+'\x34\x66\x66\x39\x37'+_0x5a7b28(0x4b8)+_0x5a7b28(0x581)+_0x5a7b28(0x672)+_0x5a7b28(0x75e)+_0x5a7b28(0x60f)+'\x36\x38\x35\x62\x37'+_0x5a7b28(0x73f)+_0x5a7b28(0x60d)+_0x5a7b28(0x74c)+_0x5a7b28(0x202)+_0x5a7b28(0x56e)+_0x5a7b28(0x4a7)+_0x5a7b28(0x4c5)+_0x5a7b28(0x407),_0x38b59d[_0x5a7b28(0x613)+_0x5a7b28(0x262)]=0xa1,_0x38b59d[_0x5a7b28(0x5c1)+'\x64']=0x2b5d,_0x38b59d[_0x5a7b28(0x346)]=0x124c,_0x38b59d[_0x5a7b28(0x3ca)+'\x67\x65\x49\x64']=0x5f6163d,_0x38b59d['\x6e\x61\x6d\x65']=_0x5a7b28(0x3d3)+_0x5a7b28(0x333)+'\u9891';const _0x3e3cd9={};_0x3e3cd9[_0x5a7b28(0x402)+_0x5a7b28(0x4c8)]=_0x5a7b28(0x3c6)+_0x5a7b28(0x1c3)+_0x5a7b28(0x248)+'\x35\x65\x30\x62\x31'+_0x5a7b28(0x5bc)+'\x35\x39\x64\x61\x33'+_0x5a7b28(0x285)+_0x5a7b28(0x2a3)+_0x5a7b28(0x33d)+_0x5a7b28(0x53c)+_0x5a7b28(0x6b9)+_0x5a7b28(0x5a1)+'\x34\x37\x31\x38\x39'+_0x5a7b28(0x71f)+_0x5a7b28(0x246)+'\x36\x30\x33\x62\x36'+_0x5a7b28(0x567)+_0x5a7b28(0x299)+'\x37\x65\x37\x61\x31'+'\x32\x62\x33\x30\x32'+_0x5a7b28(0x728)+'\x31\x31\x64\x61\x32'+'\x37\x62\x32\x33\x34'+_0x5a7b28(0x6ed)+_0x5a7b28(0x46c)+_0x5a7b28(0x30e)+_0x5a7b28(0x2cc)+_0x5a7b28(0x48b)+'\x30\x63\x65\x61\x65'+'\x34\x66\x34\x65\x31'+'\x30\x32\x63\x63\x35'+_0x5a7b28(0x2ad),_0x3e3cd9[_0x5a7b28(0x613)+_0x5a7b28(0x262)]=0x7d8,_0x3e3cd9[_0x5a7b28(0x5c1)+'\x64']=0x5f61024,_0x3e3cd9[_0x5a7b28(0x346)]=0x1a6d,_0x3e3cd9[_0x5a7b28(0x3ca)+_0x5a7b28(0x656)]=0x5f61bf1,_0x3e3cd9[_0x5a7b28(0x764)]=_0x5a7b28(0x1dd)+_0x5a7b28(0x42c)+_0x5a7b28(0x461);const _0x4baa35={};_0x4baa35[_0x5a7b28(0x402)+_0x5a7b28(0x4c8)]=_0x5a7b28(0x736)+'\x33\x31\x35\x39\x34'+_0x5a7b28(0x7a2)+'\x36\x39\x65\x66\x36'+_0x5a7b28(0x325)+_0x5a7b28(0x781)+_0x5a7b28(0x560)+_0x5a7b28(0x38b)+'\x61\x61\x35\x31\x34'+_0x5a7b28(0x67c)+_0x5a7b28(0x4f4)+_0x5a7b28(0x521)+_0x5a7b28(0x769)+'\x61\x66\x34\x64\x39'+_0x5a7b28(0x72c)+_0x5a7b28(0x6e1)+_0x5a7b28(0x51e)+_0x5a7b28(0x658)+_0x5a7b28(0x35f)+'\x32\x66\x35\x62\x35'+'\x37\x36\x35\x61\x38'+_0x5a7b28(0x20a)+_0x5a7b28(0x328)+_0x5a7b28(0x4be)+_0x5a7b28(0x47b)+'\x35\x38\x61\x31\x35'+_0x5a7b28(0x3f9)+_0x5a7b28(0x372)+_0x5a7b28(0x49a)+_0x5a7b28(0x20e)+_0x5a7b28(0x600)+_0x5a7b28(0x58e),_0x4baa35[_0x5a7b28(0x613)+'\x65\x73\x73\x49\x64']=0x4b,_0x4baa35[_0x5a7b28(0x5c1)+'\x64']=0x5f61024,_0x4baa35[_0x5a7b28(0x346)]=0x1a6d,_0x4baa35[_0x5a7b28(0x3ca)+_0x5a7b28(0x656)]=0x5f61bf1,_0x4baa35[_0x5a7b28(0x764)]='\u76f4\u64ad\u4efb\u52a1';const _0x32dc56={};_0x32dc56[_0x5a7b28(0x402)+'\x72\x61\x6d\x73']='\x35\x36\x64\x66\x65'+_0x5a7b28(0x737)+_0x5a7b28(0x7a2)+'\x36\x39\x65\x66\x36'+_0x5a7b28(0x325)+_0x5a7b28(0x781)+_0x5a7b28(0x560)+_0x5a7b28(0x38b)+_0x5a7b28(0x6d1)+_0x5a7b28(0x67c)+_0x5a7b28(0x4f4)+_0x5a7b28(0x521)+_0x5a7b28(0x769)+_0x5a7b28(0x1e3)+'\x35\x61\x62\x63\x32'+_0x5a7b28(0x6e1)+'\x35\x30\x66\x39\x39'+'\x34\x30\x34\x61\x39'+'\x65\x30\x62\x66\x36'+_0x5a7b28(0x394)+_0x5a7b28(0x68b)+_0x5a7b28(0x20a)+_0x5a7b28(0x328)+_0x5a7b28(0x4be)+_0x5a7b28(0x47b)+_0x5a7b28(0x237)+'\x39\x64\x61\x63\x64'+_0x5a7b28(0x372)+_0x5a7b28(0x49a)+_0x5a7b28(0x20e)+_0x5a7b28(0x600)+_0x5a7b28(0x58e),_0x32dc56[_0x5a7b28(0x613)+_0x5a7b28(0x262)]=0xa8,_0x32dc56['\x70\x61\x67\x65\x49'+'\x64']=0x5f61024,_0x32dc56[_0x5a7b28(0x346)]=0x1a6d,_0x32dc56['\x73\x75\x62\x50\x61'+_0x5a7b28(0x656)]=0x5f61bf1,_0x32dc56['\x6e\x61\x6d\x65']='\u7b7e\u5230\u7ffb\u500d\u89c6'+'\u9891\x32';const _0x11b2e3={};_0x11b2e3[_0x5a7b28(0x2cf)+'\x72\x61\x77\x4e\x75'+'\x6d']=_0x30b969,_0x11b2e3[_0x5a7b28(0x2cf)+_0x5a7b28(0x714)+_0x5a7b28(0x217)]=_0x50acc5,_0x11b2e3['\x6c\x75\x63\x6b\x64'+_0x5a7b28(0x714)+_0x5a7b28(0x3fc)]=_0x13f7b0,_0x11b2e3[_0x5a7b28(0x2cf)+_0x5a7b28(0x29a)+'\x6d\x65\x72']=_0x38b59d,_0x11b2e3[_0x5a7b28(0x4c4)+'\x65\x56\x69\x64\x65'+'\x6f']=_0x3e3cd9,_0x11b2e3[_0x5a7b28(0x3a5)+_0x5a7b28(0x36a)]=_0x4baa35,_0x11b2e3[_0x5a7b28(0x47a)+_0x5a7b28(0x36a)]=_0x32dc56;let _0xa6ec70=_0x11b2e3,_0x3cf409=new Date(),_0x1b6749=_0x3cf409[_0x5a7b28(0x6a4)+'\x75\x72\x73'](),_0x380b4f=0x629+0x1852+0x2f*-0xa6+0.08000000000000007,_0x530440=-0x3a6+-0x257a+0x2920,_0x546d6a=_0x5a7b28(0x780),_0x8dafd1=_0x5a7b28(0x37b)+_0x5a7b28(0x5e0)+'\x61\x66\x78\x63\x79'+_0x5a7b28(0x5e1)+'\x6e\x67\x2e\x6e\x65'+_0x5a7b28(0x71b)+_0x5a7b28(0x261)+_0x5a7b28(0x7a4)+_0x5a7b28(0x4d8)+'\x64\x43\x6f\x64\x65'+_0x5a7b28(0x557)+_0x5a7b28(0x62c)+_0x5a7b28(0x46d)+'\x2f\x63\x6f\x64\x65'+'\x2e\x6a\x73\x6f\x6e',_0x18fe6c='\x68\x74\x74\x70\x73'+_0x5a7b28(0x2db)+_0x5a7b28(0x24b)+_0x5a7b28(0x78f);class _0x84ef28{constructor(_0x2d0ddb){const _0x28cad4=_0x5a7b28,_0x480110={};_0x480110[_0x28cad4(0x3a4)]=function(_0x3a288e,_0x5e2145){return _0x3a288e>_0x5e2145;},_0x480110[_0x28cad4(0x5e6)]=_0x28cad4(0x780)+'\x50\x61\x79\x54\x79'+'\x70\x65';const _0x5a6a0e=_0x480110;let _0x515735=_0x2d0ddb['\x6d\x61\x74\x63\x68'](/(kuaishou.api_st=[\w\-]+)/)[-0x771+0x483*0x2+0xca*-0x2]+'\x3b';this['\x70\x61\x79\x54\x79'+'\x70\x65']=_0x5a6a0e[_0x28cad4(0x3a4)](_0x2d0ddb[_0x28cad4(0x4fb)+'\x4f\x66'](_0x5a6a0e[_0x28cad4(0x5e6)]),-(0x11f7*-0x1+0x13*0x1d7+-0x1*0x10fd))?_0x2d0ddb[_0x28cad4(0x713)](/ksjsbPayType=(\w+)/)[-0x1*-0x1df+-0x3b*0x2c+0x846]:'',this[_0x28cad4(0x4fb)]=++_0xed380d,this['\x63\x6f\x6f\x6b\x69'+'\x65']=_0x28cad4(0x236)+_0x28cad4(0x6e6)+_0x28cad4(0x356)+_0x28cad4(0x79b)+_0x28cad4(0x6dd)+_0x28cad4(0x4bc)+_0x28cad4(0x2eb)+_0x28cad4(0x729)+_0x28cad4(0x552)+_0x270878(0x3b*0x7+0x11b2+-0x133f)+(_0x28cad4(0x4d1)+'\x3d\x39\x2e\x31\x30'+_0x28cad4(0x410)+_0x28cad4(0x5d7)+_0x28cad4(0x6c9)+_0x28cad4(0x627)+_0x28cad4(0x767)+_0x28cad4(0x7a7)+_0x28cad4(0x2c4)+_0x28cad4(0x1e2)+'\x6f\x75\x6e\x74\x72'+_0x28cad4(0x4ca)+_0x28cad4(0x692)+_0x28cad4(0x79c)+_0x28cad4(0x52b)+'\x44\x5f\x35\x2e\x31'+_0x28cad4(0x314)+_0x28cad4(0x3ee)+_0x28cad4(0x553)+_0x28cad4(0x455)+_0x28cad4(0x33a))+_0x515735,this['\x6e\x61\x6d\x65']=this[_0x28cad4(0x4fb)],this['\x76\x61\x6c\x69\x64']=![],this['\x62\x69\x6e\x64\x41'+_0x28cad4(0x418)]=![],this[_0x28cad4(0x762)+'\x79']='',this[_0x28cad4(0x6dc)+'\x65\x63\x68\x61\x74']=![],this[_0x28cad4(0x3a8)+'\x74']='',this['\x6e\x65\x65\x64\x53'+'\x6d\x73']=![],this[_0x28cad4(0x4cd)+_0x28cad4(0x218)+'\x61\x77']=!![];const _0x31be44={};_0x31be44[_0x28cad4(0x2ae)]=0x1,_0x31be44['\x6e\x65\x65\x64\x52'+'\x75\x6e']=!![];const _0x202fef={};_0x202fef['\x6e\x75\x6d']=0x1,_0x202fef[_0x28cad4(0x6e4)+'\x75\x6e']=!![];const _0x5b96ef={};_0x5b96ef[_0x28cad4(0x2ae)]=0x1,_0x5b96ef[_0x28cad4(0x6e4)+'\x75\x6e']=!![];const _0xe8963={};_0xe8963[_0x28cad4(0x2ae)]=0x1,_0xe8963[_0x28cad4(0x6e4)+'\x75\x6e']=!![];const _0xdd52ff={};_0xdd52ff[_0x28cad4(0x2ae)]=0x1,_0xdd52ff[_0x28cad4(0x6e4)+'\x75\x6e']=!![];const _0x3e97a6={};_0x3e97a6['\x34\x39']=_0x31be44,_0x3e97a6['\x37\x35']=_0x202fef,_0x3e97a6[_0x28cad4(0x68f)]=_0x5b96ef,_0x3e97a6[_0x28cad4(0x3ef)]=_0xe8963,_0x3e97a6[_0x28cad4(0x4c4)+'\x65']=_0xdd52ff,this[_0x28cad4(0x4e2)]=_0x3e97a6;}async[_0x5a7b28(0x5cf)+_0x5a7b28(0x24c)+'\x6f'](){const _0x18897d=_0x5a7b28,_0x3f56fd={'\x57\x50\x4b\x75\x6e':function(_0x220780,_0x2cb86b,_0x1c5505,_0xaff7bc){return _0x220780(_0x2cb86b,_0x1c5505,_0xaff7bc);},'\x71\x70\x79\x55\x55':function(_0x45451a,_0x50263f,_0x442b47){return _0x45451a(_0x50263f,_0x442b47);},'\x67\x46\x71\x72\x48':_0x18897d(0x399),'\x4a\x51\x66\x5a\x6d':function(_0x4f887b,_0x514634){return _0x4f887b==_0x514634;},'\x56\x53\x6a\x67\x4b':function(_0x3584b5,_0x5588ff){return _0x3584b5-_0x5588ff;},'\x6a\x74\x6c\x51\x52':function(_0xdae6b2,_0x369d28){return _0xdae6b2(_0x369d28);}};let _0x149393=_0x18897d(0x37b)+'\x3a\x2f\x2f\x6e\x65'+_0x18897d(0x4e0)+_0x18897d(0x69f)+_0x18897d(0x6e9)+'\x6f\x6d\x2f\x72\x65'+_0x18897d(0x6ba)+_0x18897d(0x258)+_0x18897d(0x22d)+_0x18897d(0x2a7)+_0x18897d(0x61c)+_0x18897d(0x6b8)+_0x18897d(0x596)+_0x18897d(0x25a)+_0x18897d(0x75c),_0x275540='',_0x18effa=_0x3f56fd['\x57\x50\x4b\x75\x6e'](_0x2ab075,_0x149393,this['\x63\x6f\x6f\x6b\x69'+'\x65'],_0x275540);await _0x3f56fd['\x71\x70\x79\x55\x55'](_0x4236b8,_0x3f56fd[_0x18897d(0x415)],_0x18effa);let _0x3f9dc5=_0x3af722;if(!_0x3f9dc5)return;_0x3f56fd[_0x18897d(0x55f)](_0x3f9dc5['\x72\x65\x73\x75\x6c'+'\x74'],0x181e+-0x1*-0xd55+-0x2572)?(this[_0x18897d(0x546)]=!![],this[_0x18897d(0x764)]=_0x3f9dc5['\x64\x61\x74\x61']['\x75\x73\x65\x72\x44'+_0x18897d(0x56f)][_0x18897d(0x221)+_0x18897d(0x2f2)],this[_0x18897d(0x2e8)+'\x61\x6c\x61\x6e\x63'+'\x65']=_0x3f9dc5[_0x18897d(0x4ff)][_0x18897d(0x605)+_0x18897d(0x617)],this[_0x18897d(0x362)+_0x18897d(0x5e7)+'\x65']=_0x3f9dc5[_0x18897d(0x4ff)][_0x18897d(0x605)+_0x18897d(0x773)],this[_0x18897d(0x385)+'\x73\x68']=_0x3f9dc5[_0x18897d(0x4ff)]['\x61\x6c\x6c\x43\x61'+'\x73\x68'],console['\x6c\x6f\x67'](_0x18897d(0x2c7)+this[_0x18897d(0x764)]+_0x18897d(0x540)+this[_0x18897d(0x2e8)+_0x18897d(0x5e7)+'\x65']+'\u5143\uff0c'+this['\x63\x6f\x69\x6e\x42'+_0x18897d(0x5e7)+'\x65']+(_0x18897d(0x260)+'\u6838\u4f59\u989d')+Math['\x66\x6c\x6f\x6f\x72'](_0x3f56fd[_0x18897d(0x46f)](_0x3f56fd['\x6a\x74\x6c\x51\x52'](parseFloat,this['\x61\x6c\x6c\x43\x61'+'\x73\x68']),parseFloat(this[_0x18897d(0x2e8)+_0x18897d(0x5e7)+'\x65'])))+'\u5143')):console[_0x18897d(0x357)](_0x18897d(0x2c7)+this['\x6e\x61\x6d\x65']+(_0x18897d(0x4fc)+_0x18897d(0x5aa))+_0x3f9dc5[_0x18897d(0x6ac)+_0x18897d(0x414)]);}async[_0x5a7b28(0x35d)+_0x5a7b28(0x2d7)](){const _0x1d22d2=_0x5a7b28,_0x1e8537={'\x64\x47\x67\x5a\x59':function(_0x514cbe,_0x597c27,_0x2085e9,_0x17fd3a){return _0x514cbe(_0x597c27,_0x2085e9,_0x17fd3a);},'\x71\x51\x49\x73\x6f':function(_0x713969,_0x213ac8,_0x6abe9f){return _0x713969(_0x213ac8,_0x6abe9f);},'\x6b\x65\x76\x4b\x63':function(_0x482a95,_0x18b96d){return _0x482a95==_0x18b96d;}};let _0x264acb=_0x1d22d2(0x37b)+_0x1d22d2(0x4e5)+_0x1d22d2(0x4e0)+_0x1d22d2(0x69f)+_0x1d22d2(0x6e9)+_0x1d22d2(0x2e7)+_0x1d22d2(0x6ba)+_0x1d22d2(0x258)+'\x61\x2f\x61\x63\x63'+_0x1d22d2(0x654)+_0x1d22d2(0x699)+_0x1d22d2(0x6e7)+_0x1d22d2(0x449)+'\x72\x65',_0xc91b5b='',_0x2d1f96=_0x1e8537[_0x1d22d2(0x3c4)](_0x2ab075,_0x264acb,this[_0x1d22d2(0x4d7)+'\x65'],_0xc91b5b);await _0x1e8537['\x71\x51\x49\x73\x6f'](_0x4236b8,_0x1d22d2(0x486),_0x2d1f96);let _0x513cca=_0x3af722;if(!_0x513cca)return;_0x1e8537[_0x1d22d2(0x74e)](_0x513cca[_0x1d22d2(0x268)+'\x74'],-0x19fb+-0x194b+0x3347*0x1)?(console['\x6c\x6f\x67'](_0x1d22d2(0x2c7)+this['\x6e\x61\x6d\x65']+('\x5d\u51c6\u5907\u5206\u4eab'+_0x1d22d2(0x6c0))),await _0x1d0946[_0x1d22d2(0x485)](0x1b3f+0x11d+0x2c2*-0xa),await this[_0x1d22d2(0x465)+'\x65\x77\x61\x72\x64'](-0x14cc*0x1+0xa63+-0x3*-0x3a1)):console[_0x1d22d2(0x357)]('\u8d26\u53f7\x5b'+this[_0x1d22d2(0x764)]+(_0x1d22d2(0x666)+'\uff1a')+_0x513cca[_0x1d22d2(0x6ac)+'\x5f\x6d\x73\x67']);}async[_0x5a7b28(0x465)+_0x5a7b28(0x322)](_0x554bba){const _0x211ba8=_0x5a7b28,_0x537ff5={'\x4d\x6d\x79\x4a\x45':function(_0x2bea1a,_0x161ea2,_0x70a867,_0x327375){return _0x2bea1a(_0x161ea2,_0x70a867,_0x327375);},'\x5a\x4b\x6c\x44\x50':function(_0x49bb99,_0x2e46ac,_0x2e4a1d){return _0x49bb99(_0x2e46ac,_0x2e4a1d);},'\x78\x50\x51\x6d\x48':_0x211ba8(0x399),'\x6a\x72\x79\x6d\x4d':function(_0x5d2dfa,_0x2c0b68){return _0x5d2dfa==_0x2c0b68;}};let _0x472ca7=_0x211ba8(0x37b)+_0x211ba8(0x4e5)+_0x211ba8(0x4e0)+_0x211ba8(0x69f)+_0x211ba8(0x6e9)+_0x211ba8(0x2e7)+_0x211ba8(0x6ba)+_0x211ba8(0x258)+'\x61\x2f\x64\x61\x69'+_0x211ba8(0x353)+_0x211ba8(0x20f)+_0x211ba8(0x476)+'\x64\x3d'+_0x554bba,_0x51c5b3='',_0xa7635a=_0x537ff5[_0x211ba8(0x62f)](_0x2ab075,_0x472ca7,this[_0x211ba8(0x4d7)+'\x65'],_0x51c5b3);await _0x537ff5[_0x211ba8(0x2a9)](_0x4236b8,_0x537ff5['\x78\x50\x51\x6d\x48'],_0xa7635a);let _0x5a76d9=_0x3af722;if(!_0x5a76d9)return;_0x537ff5[_0x211ba8(0x74d)](_0x5a76d9['\x72\x65\x73\x75\x6c'+'\x74'],0xb*-0x139+-0x1641*-0x1+-0x8cd)?console['\x6c\x6f\x67'](_0x211ba8(0x2c7)+this[_0x211ba8(0x764)]+(_0x211ba8(0x2ed)+'\x5b')+_0x554bba+(_0x211ba8(0x2ac)+'\u5f97')+_0x5a76d9[_0x211ba8(0x4ff)][_0x211ba8(0x1c5)+'\x74']+'\u91d1\u5e01'):console[_0x211ba8(0x357)](_0x211ba8(0x2c7)+this['\x6e\x61\x6d\x65']+('\x5d\u5b8c\u6210\u4efb\u52a1'+'\x5b')+_0x554bba+_0x211ba8(0x316)+_0x5a76d9['\x65\x72\x72\x6f\x72'+_0x211ba8(0x414)]);}async['\x67\x65\x74\x53\x69'+_0x5a7b28(0x536)+'\x6f'](){const _0x33fe77=_0x5a7b28,_0x56d5eb={'\x4f\x65\x70\x4b\x44':function(_0x7d2f3b,_0x354dc3,_0x404d32,_0x4d5df4){return _0x7d2f3b(_0x354dc3,_0x404d32,_0x4d5df4);},'\x6b\x67\x78\x6f\x71':function(_0x186d9e,_0x44882a,_0x108200){return _0x186d9e(_0x44882a,_0x108200);},'\x5a\x44\x6d\x68\x69':_0x33fe77(0x399),'\x50\x53\x46\x45\x78':function(_0x44ded9,_0x263c6d){return _0x44ded9==_0x263c6d;}};let _0x1c2f62=_0x33fe77(0x37b)+'\x3a\x2f\x2f\x6e\x65'+_0x33fe77(0x4e0)+_0x33fe77(0x69f)+_0x33fe77(0x6e9)+'\x6f\x6d\x2f\x72\x65'+_0x33fe77(0x6ba)+'\x6e\x65\x62\x75\x6c'+_0x33fe77(0x4bf)+_0x33fe77(0x58a)+_0x33fe77(0x6e8)+'\x75\x70',_0x2ddcc='',_0x18a94a=_0x56d5eb[_0x33fe77(0x29e)](_0x2ab075,_0x1c2f62,this[_0x33fe77(0x4d7)+'\x65'],_0x2ddcc);await _0x56d5eb[_0x33fe77(0x41e)](_0x4236b8,_0x56d5eb[_0x33fe77(0x5ed)],_0x18a94a);let _0x4cc283=_0x3af722;if(!_0x4cc283)return;_0x56d5eb[_0x33fe77(0x406)](_0x4cc283['\x72\x65\x73\x75\x6c'+'\x74'],0x3d*0x25+-0xc0c+0x33c)?(console[_0x33fe77(0x357)](_0x33fe77(0x2c7)+this[_0x33fe77(0x764)]+_0x33fe77(0x42a)+(_0x4cc283['\x64\x61\x74\x61']['\x6e\x65\x62\x75\x6c'+_0x33fe77(0x4b3)+_0x33fe77(0x500)+'\x75\x70'][_0x33fe77(0x77b)+'\x53\x69\x67\x6e\x65'+'\x64']?'\u5df2':'\u672a')+'\u7b7e\u5230'),!_0x4cc283[_0x33fe77(0x4ff)][_0x33fe77(0x258)+_0x33fe77(0x4b3)+_0x33fe77(0x500)+'\x75\x70']['\x74\x6f\x64\x61\x79'+_0x33fe77(0x5c8)+'\x64']&&(await _0x1d0946[_0x33fe77(0x485)](-0x33c+0x59*0x53+-0x18d7),await this[_0x33fe77(0x591)+'\x6e'](),await _0x1d0946[_0x33fe77(0x485)](0x1ae4+0xe15+0x1*-0x2831),await this[_0x33fe77(0x35d)+_0x33fe77(0x2d7)]())):console['\x6c\x6f\x67'](_0x33fe77(0x2c7)+this[_0x33fe77(0x764)]+(_0x33fe77(0x421)+_0x33fe77(0x5aa))+_0x4cc283['\x65\x72\x72\x6f\x72'+_0x33fe77(0x414)]);}async[_0x5a7b28(0x591)+'\x6e'](){const _0x349c2e=_0x5a7b28,_0x583162={'\x59\x49\x73\x55\x79':function(_0x9c13b,_0x1463e3,_0x525b4a,_0x168368){return _0x9c13b(_0x1463e3,_0x525b4a,_0x168368);},'\x6f\x79\x62\x63\x7a':function(_0x59f330,_0x4d232f,_0x207bf2){return _0x59f330(_0x4d232f,_0x207bf2);},'\x66\x6c\x62\x6a\x46':_0x349c2e(0x399)};let _0x555831='\x68\x74\x74\x70\x73'+_0x349c2e(0x4e5)+_0x349c2e(0x4e0)+_0x349c2e(0x69f)+'\x68\x6f\x75\x2e\x63'+_0x349c2e(0x2e7)+'\x73\x74\x2f\x6e\x2f'+'\x6e\x65\x62\x75\x6c'+'\x61\x2f\x73\x69\x67'+'\x6e\x2f\x73\x69\x67'+_0x349c2e(0x6d4)+_0x349c2e(0x49e)+_0x349c2e(0x677)+'\x74\x79',_0x2f3d55='',_0x3bb23a=_0x583162[_0x349c2e(0x4c2)](_0x2ab075,_0x555831,this[_0x349c2e(0x4d7)+'\x65'],_0x2f3d55);await _0x583162[_0x349c2e(0x2dd)](_0x4236b8,_0x583162['\x66\x6c\x62\x6a\x46'],_0x3bb23a);let _0x557828=_0x3af722;if(!_0x557828)return;_0x557828[_0x349c2e(0x268)+'\x74']==-0x1f2*0xc+0x2526+0xdcd*-0x1?(console[_0x349c2e(0x357)]('\u8d26\u53f7\x5b'+this[_0x349c2e(0x764)]+(_0x349c2e(0x336)+'\uff1a')+_0x557828[_0x349c2e(0x4ff)][_0x349c2e(0x532)]),await _0x1d0946[_0x349c2e(0x485)](0x169+0x11*-0x25+0x1d4),await this[_0x349c2e(0x6b1)+_0x349c2e(0x4a9)](_0x386760[_0x349c2e(0x3cd)]),await _0x1d0946['\x77\x61\x69\x74'](-0x1f*0x76+-0xf40+-0x1e52*-0x1),await this['\x6b\x73\x4e\x65\x6f'+_0x349c2e(0x790)+'\x61\x6d'](_0xa6ec70[_0x349c2e(0x47a)+_0x349c2e(0x36a)])):console[_0x349c2e(0x357)](_0x349c2e(0x2c7)+this[_0x349c2e(0x764)]+(_0x349c2e(0x5ee)+'\uff1a')+_0x557828[_0x349c2e(0x6ac)+_0x349c2e(0x414)]);}async[_0x5a7b28(0x4df)+'\x69\x73\x74'](){const _0x253fad=_0x5a7b28,_0x5321f7={'\x4b\x47\x6d\x47\x4c':_0x253fad(0x399),'\x69\x50\x62\x7a\x74':function(_0xd7064,_0x95c94e){return _0xd7064==_0x95c94e;},'\x58\x68\x6d\x68\x7a':function(_0x332714,_0x39a94a){return _0x332714(_0x39a94a);},'\x74\x41\x63\x77\x42':function(_0x1e50c8,_0x27de57){return _0x1e50c8(_0x27de57);},'\x43\x48\x6d\x74\x4d':_0x253fad(0x64e)};let _0x486263='\x68\x74\x74\x70\x73'+_0x253fad(0x4e5)+_0x253fad(0x4e0)+_0x253fad(0x69f)+_0x253fad(0x6e9)+'\x6f\x6d\x2f\x72\x65'+_0x253fad(0x6ba)+_0x253fad(0x258)+_0x253fad(0x22d)+_0x253fad(0x2a7)+_0x253fad(0x61c)+_0x253fad(0x6b8)+_0x253fad(0x596)+_0x253fad(0x3b9)+_0x253fad(0x3b5)+_0x253fad(0x1dc)+_0x253fad(0x622)+_0x253fad(0x491)+'\x61\x74\x75\x73\x3d'+_0x253fad(0x636)+_0x253fad(0x379)+_0x253fad(0x21b)+_0x253fad(0x651)+_0x253fad(0x595)+_0x253fad(0x4eb)+_0x253fad(0x749),_0x512268='',_0x7e3315=_0x2ab075(_0x486263,this[_0x253fad(0x4d7)+'\x65'],_0x512268);await _0x4236b8(_0x5321f7['\x4b\x47\x6d\x47\x4c'],_0x7e3315);let _0x1154c6=_0x3af722;if(!_0x1154c6)return;if(_0x5321f7[_0x253fad(0x59d)](_0x1154c6[_0x253fad(0x268)+'\x74'],0x927+0x1c*0x12d+-0x2ce*0xf)){console[_0x253fad(0x357)]('\u8d26\u53f7\x5b'+this[_0x253fad(0x764)]+(_0x253fad(0x512)+'\u60c5\u51b5\uff1a'));for(let _0x1f3b79 of _0x1154c6[_0x253fad(0x4ff)][_0x253fad(0x32b)+'\x54\x61\x73\x6b\x73']){for(let _0x3b6198 in _0x4b8440){if(_0x1f3b79[_0x253fad(0x476)+'\x64']==_0x4b8440[_0x3b6198]){let _0x33c772=_0x5321f7['\x58\x68\x6d\x68\x7a'](parseInt,_0x1f3b79[_0x253fad(0x3e3)+_0x253fad(0x720)+'\x74\x61\x67\x65\x73']),_0x12da2e=_0x5321f7['\x74\x41\x63\x77\x42'](parseInt,_0x1f3b79[_0x253fad(0x497)+'\x73']),_0x4efa34=Math[_0x253fad(0x689)](_0x12da2e/_0x488265),_0x2c7359=_0x33c772<_0x12da2e;const _0x8848b3={};_0x8848b3[_0x253fad(0x2ae)]=_0x4efa34,_0x8848b3[_0x253fad(0x6e4)+'\x75\x6e']=_0x2c7359,this['\x74\x61\x73\x6b'][_0x1f3b79['\x74\x61\x73\x6b\x49'+'\x64']]=_0x8848b3,console[_0x253fad(0x357)]('\u3010'+_0x1f3b79[_0x253fad(0x764)]+'\u3011\x20'+_0x33c772+'\x2f'+_0x12da2e+'\uff0c'+(_0x2c7359?_0x5321f7[_0x253fad(0x360)]:_0x253fad(0x47e)));continue;}}}}else console['\x6c\x6f\x67'](_0x253fad(0x2c7)+this['\x6e\x61\x6d\x65']+(_0x253fad(0x1e6)+_0x253fad(0x565))+_0x1154c6[_0x253fad(0x6ac)+'\x5f\x6d\x73\x67']);}async[_0x5a7b28(0x270)](){const _0x373a5e=_0x5a7b28,_0x440748={'\x6b\x4a\x56\x63\x71':function(_0x562f84,_0x12908f,_0x2237d6,_0x9ec5c7){return _0x562f84(_0x12908f,_0x2237d6,_0x9ec5c7);},'\x70\x44\x7a\x63\x71':function(_0x4abe97,_0x54aa07,_0xae685a){return _0x4abe97(_0x54aa07,_0xae685a);},'\x73\x5a\x56\x62\x6c':_0x373a5e(0x486),'\x76\x6a\x70\x64\x59':function(_0x483b09,_0x1d5732){return _0x483b09==_0x1d5732;}};let _0x1a9194='\x68\x74\x74\x70\x73'+_0x373a5e(0x45e)+_0x373a5e(0x6c1)+_0x373a5e(0x6a6)+'\x6f\x75\x2e\x63\x6f'+_0x373a5e(0x743)+_0x373a5e(0x4b2)+_0x373a5e(0x322)+'\x2f\x74\x61\x73\x6b'+_0x373a5e(0x69e)+_0x373a5e(0x677)+_0x373a5e(0x701)+'\x61\x72\x64',_0x559e4f=_0x373a5e(0x390)+_0x373a5e(0x1d4)+_0x373a5e(0x60e)+_0x373a5e(0x50b)+_0x373a5e(0x3e2)+_0x373a5e(0x37f)+_0x373a5e(0x634),_0x5cfb36=_0x440748[_0x373a5e(0x28f)](_0x2ab075,_0x1a9194,this['\x63\x6f\x6f\x6b\x69'+'\x65'],_0x559e4f);await _0x440748[_0x373a5e(0x1fd)](_0x4236b8,_0x440748[_0x373a5e(0x234)],_0x5cfb36);let _0x4c1eb2=_0x3af722;if(!_0x4c1eb2)return;_0x440748[_0x373a5e(0x78a)](_0x4c1eb2[_0x373a5e(0x268)+'\x74'],-0x806+-0x14e0+-0x31*-0x97)?console['\x6c\x6f\x67'](_0x373a5e(0x2c7)+this[_0x373a5e(0x764)]+'\x5d\u901b\u8857\u83b7\u5f97'+_0x4c1eb2[_0x373a5e(0x4ff)]['\x61\x6d\x6f\x75\x6e'+'\x74']+'\u91d1\u5e01'):console['\x6c\x6f\x67'](_0x373a5e(0x2c7)+this[_0x373a5e(0x764)]+(_0x373a5e(0x615)+'\uff1a')+_0x4c1eb2[_0x373a5e(0x6ac)+_0x373a5e(0x414)]);}async[_0x5a7b28(0x6b1)+_0x5a7b28(0x4a9)](_0x210c39){const _0x4cc817=_0x5a7b28,_0x53eb6e={'\x74\x61\x65\x53\x42':function(_0x3a1eaa,_0x482650,_0x209e2f,_0x10d03d){return _0x3a1eaa(_0x482650,_0x209e2f,_0x10d03d);},'\x79\x55\x50\x62\x69':function(_0x40a223,_0x3171e7,_0x6457ff){return _0x40a223(_0x3171e7,_0x6457ff);},'\x76\x50\x67\x71\x68':_0x4cc817(0x486),'\x48\x52\x6c\x67\x54':function(_0x16df1a,_0xdf1ad1){return _0x16df1a==_0xdf1ad1;},'\x76\x4b\x4f\x72\x51':function(_0x1f27fc,_0x5d40bf){return _0x1f27fc>_0x5d40bf;}};let _0x1a109c='\x68\x74\x74\x70\x73'+_0x4cc817(0x45e)+_0x4cc817(0x6c1)+_0x4cc817(0x6a6)+_0x4cc817(0x4a5)+'\x6d\x2f\x72\x65\x73'+_0x4cc817(0x460)+'\x31\x2f\x72\x65\x77'+'\x61\x72\x64\x2f\x61'+_0x4cc817(0x381)+_0x4cc817(0x79b)+_0x4cc817(0x6dd)+'\x48\x4f\x4e\x45\x26'+_0x4cc817(0x236)+'\x45\x42\x55\x4c\x41',_0x16492=_0x4cc817(0x59e)+_0x4cc817(0x331)+_0x4cc817(0x3de)+_0x4cc817(0x484)+_0x4cc817(0x34c)+'\x65\x64\x62\x39\x30'+_0x4cc817(0x529)+_0x4cc817(0x5c2)+_0x4cc817(0x408)+_0x4cc817(0x4f5)+_0x4cc817(0x514)+_0x4cc817(0x224)+_0x4cc817(0x245)+'\x61\x63\x62\x39\x26'+_0x4cc817(0x569)+_0x4cc817(0x3c0)+_0x4cc817(0x748)+_0x4cc817(0x5f9)+'\x39\x35\x32\x35\x62'+_0x4cc817(0x2d3)+_0x4cc817(0x603)+_0x4cc817(0x572)+'\x67\x6a\x41\x77\x25'+'\x32\x42\x74\x44\x7a'+'\x31\x6d\x62\x45\x67'+_0x4cc817(0x606)+_0x4cc817(0x1e9)+'\x25\x32\x42\x33\x69'+_0x4cc817(0x23e)+_0x4cc817(0x78b)+_0x4cc817(0x5bb)+_0x4cc817(0x26f)+_0x4cc817(0x302)+_0x4cc817(0x5d1)+_0x4cc817(0x733)+_0x4cc817(0x267)+_0x4cc817(0x3bd)+_0x4cc817(0x659)+_0x4cc817(0x624)+_0x4cc817(0x791)+_0x4cc817(0x40d)+_0x4cc817(0x67f)+_0x4cc817(0x5db)+_0x4cc817(0x4e4)+_0x4cc817(0x765)+_0x4cc817(0x631)+_0x4cc817(0x229)+_0x4cc817(0x317)+_0x4cc817(0x264)+_0x4cc817(0x601)+_0x4cc817(0x5b6)+_0x4cc817(0x3e4)+'\x25\x32\x42\x50\x61'+_0x4cc817(0x43e)+'\x55\x72\x4d\x38\x68'+_0x4cc817(0x7b6)+'\x25\x32\x46\x71\x6d'+'\x63\x43\x67\x4c\x71'+'\x36\x46\x5a\x39\x37'+'\x67\x73\x66\x30\x72'+_0x4cc817(0x3b0)+_0x4cc817(0x294)+_0x4cc817(0x2ef)+_0x4cc817(0x592)+_0x4cc817(0x6ad)+_0x4cc817(0x3af)+_0x4cc817(0x63c)+_0x4cc817(0x47f)+_0x4cc817(0x437)+_0x4cc817(0x7a6)+_0x4cc817(0x640)+_0x4cc817(0x395)+_0x4cc817(0x3b8)+'\x56\x43\x6b\x6e\x7a'+_0x4cc817(0x59c)+_0x4cc817(0x45c)+_0x4cc817(0x389)+_0x4cc817(0x2ca)+'\x41\x70\x44\x6e\x7a'+_0x4cc817(0x233)+_0x4cc817(0x5a9)+_0x4cc817(0x31a)+_0x4cc817(0x55c)+_0x4cc817(0x2d1)+_0x4cc817(0x655)+_0x4cc817(0x273)+_0x4cc817(0x430)+_0x4cc817(0x3cb)+_0x4cc817(0x6f4)+_0x4cc817(0x67d)+_0x4cc817(0x3ad)+'\x49\x68\x56\x70\x64'+_0x4cc817(0x776)+_0x4cc817(0x354)+_0x4cc817(0x71e)+_0x4cc817(0x311)+_0x4cc817(0x4ce)+_0x4cc817(0x6d0)+_0x4cc817(0x698)+_0x4cc817(0x670)+'\x33\x6c\x59\x4a\x4c'+'\x
+    this.index = ++index;
+    this.cookie =
+      'kpn=NEBULA; kpf=ANDROID_PHONE; did=ANDROID_' +
+      randomString(16) +
+      '; ver=9.10; appver=9.10.40.2474; language=zh-cn; countryCode=CN; sys=ANDROID_5.1; client_key=2ac2a76d; ' +
+      api_st;
+    this.name = this.index;
+    this.valid = false;
+    this.bindAlipay = false;
+    this.alipay = '';
+    this.bindWechat = false;
+    this.wechat = '';
+    this.needSms = false;
+  }
+  //获取用户信息
+  async getUserInfo() {
+    let url =
+      'https://nebula.kuaishou.com/rest/n/nebula/activity/earn/overview/basicInfo';
+    let body = '';
+    let options = getOptions(url, this.cookie, body);
+    await doRequest('get', options);
+    if (!res) {
+      return;
+    }
+    if (res.result == 1) {
+      this.valid = true;
+      this.name = res.data.userData.nickname;
+      this.cashBalance = res.data.totalCash;
+      this.coinBalance = res.data.totalCoin;
+      this.allCash = res.data.allCash;
+      console.log(
+        `🎈${this.name}=>账户余额${this.cashBalance}元，${
+          this.coinBalance
+        }金币，未审核余额${Math.floor(
+          parseFloat(this.allCash) - parseFloat(this.cashBalance)
+        )}元`
+      );
+    } else {
+      console.log(`🎈${this.name}=>查询账户信息失败：${res.error_msg}`);
+    }
+  }
+  //分享获得3000金币
+  async setShare() {
+    let url =
+      'https://nebula.kuaishou.com/rest/n/nebula/account/withdraw/setShare';
+    let body = '';
+    let options = getOptions(url, this.cookie, body);
+    await doRequest('post', options);
+    if (!res) {
+      return;
+    }
+    if (res.result == 1) {
+      console.log(`🎈${this.name}=>准备分享得金币`);
+      await $.wait(200);
+      await this.taskReward(122);
+    } else {
+      console.log(`🎈${this.name}=>分享失败：${res.error_msg}`);
+    }
+  }
+//做任务
+  async taskReward(taskId) {
+    let url = `https://nebula.kuaishou.com/rest/n/nebula/daily/report?taskId=${taskId}`;
+    let body = '';
+    let options = getOptions(url, this.cookie, body);
+    await doRequest('get', options);
+    if (!res) {
+      return;
+    }
+    if (res.result == 1) {
+      console.log(
+        `🎈${this.name}=>完成任务[${taskId}]成功，获得${res.data.amount}金币`
+      );
+    } else {
+      console.log(
+        `🎈${this.name}=>完成任务[${taskId}]失败：${res.error_msg}`
+      );
+    }
+  }
+//签到详情
+  async getSignInfo() {
+    let url = 'https://nebula.kuaishou.com/rest/n/nebula/sign/queryPopup';
+    let body = '';
+    let options = getOptions(url, this.cookie, body);
+    await doRequest('get', options);
+    if (!res) {
+      return;
+    }
+    if (res.result == 1) {
+      let todaySigned = res.data.nebulaSignInPopup.todaySigned;
+      console.log(`🎈${this.name}=>今天${todaySigned ? '已' : '未'}签到`);
+      if (!todaySigned) {
+        await $.wait(200);
+        await this.doSign();
+        await $.wait(200);
+        await this.setShare();
+      }
+    } else {
+      console.log(`🎈${this.name}=>查询签到信息失败：${res.error_msg}`);
+    }
+  }
+  
+
+  //签到
+  async doSign() {
+    let url =
+      'https://nebula.kuaishou.com/rest/n/nebula/sign/sign?source=activity';
+    let body = '';
+    let options = getOptions(url, this.cookie, body);
+    await doRequest('get', options);
+    if (!res) {
+      return;
+    }
+    if (res.result == 1) {
+      console.log(`${this.name}=>签到成功：${res.data.toast}`);
+      await $.wait(200);
+    } else {
+      console.log(`🎈${this.name}=>签到失败：${res.error_msg}`);
+    }
+  }
+
+
+
+  async accountOverview() {
+    let _0x512fe7 =
+        'https://nebula.kuaishou.com/rest/n/nebula/account/overview',
+      _0x251847 = '',
+      _0x39f16d = getOptions(_0x512fe7, this.cookie, _0x251847);
+
+    await doRequest('get', _0x39f16d);
+    let _0xa69994 = res;
+
+    if (!_0xa69994) {
+      return;
+    }
+
+    if (_0xa69994.result == 1) {
+      this.coinBalance = _0xa69994.data.coinBalance;
+      this.cashBalance = _0xa69994.data.cashBalance;
+      let _0x54aac5 = _0xa69994.data.exchangeCoinState;
+
+      console.log(
+        '🎈' +
+          this.name +
+          '=>账户余额' +
+          this.cashBalance +
+          '元，' +
+          this.coinBalance +
+          '金币'
+      );
+
+      _0x54aac5 == 2 && (await $.wait(200), await this.changeExchangeType(0));
+    } else {
+      console.log(
+        '🎈' + this.name + '=>查询账户信息失败：' + _0xa69994.error_msg
+      );
+    }
+  }
+  
+/*   //开箱子,1金币懒得搞 
+  async openBox(_0x412555) {
+    let _0x513362 =
+        'https://nebula.kuaishou.com/rest/n/nebula/box/explore?isOpen=' +
+        _0x412555 +
+        '&isReadyOfAdPlay=true',
+      _0x3ef8d9 = '',
+      _0x48334f = getOptions(_0x513362, this.cookie, _0x3ef8d9);
+
+    await doRequest('get', _0x48334f);
+    let _0x15220b = res;
+
+    if (!_0x15220b) {
+      return;
+    }
+
+    _0x15220b.result == 1
+      ? _0x412555 == true
+        ? _0x15220b.data.commonAwardPopup &&
+          _0x15220b.data.commonAwardPopup.awardAmount
+          ? (console.log(
+              '🎈' +
+                this.name +
+                '=>开宝箱获得' +
+                _0x15220b.data.commonAwardPopup.awardAmount +
+                '金币'
+            ),
+            await $.wait(200),
+            await this.ksAdParam(AdName.box))
+          : console.log('🎈' + this.name + '=>开宝箱没有获得金币')
+        : _0x15220b.data.openTime > -1
+        ? (console.log(
+            '🎈' +
+              this.name +
+              '=>开宝箱冷却时间还有' +
+              Math.floor(_0x15220b.data.openTime / 1000) +
+              '秒'
+          ),
+          _0x15220b.data.openTime == 0 &&
+            (await $.wait(200), await this.openBox(true)))
+        : console.log('🎈' + this.name + '=>开宝箱次数已用完')
+      : _0x412555 == true
+      ? console.log('🎈' + this.name + '=>开宝箱失败：' + _0x15220b.error_msg)
+      : console.log(
+          '🎈' + this.name + '=>查询宝箱状态失败：' + _0x15220b.error_msg
+        );
+  } */
+
+
+
+
+  
+
+
+
+  //兑换
+  async changeExchangeType(_0x1bd22f) {
+    let _0x4e7ea7 =
+        'https://nebula.kuaishou.com/rest/n/nebula/exchange/changeExchangeType',
+      _0x6250c8 = '{"type":' + _0x1bd22f + '}',
+      _0x2c1c9f = getOptions(_0x4e7ea7, this.cookie, _0x6250c8);
+
+    _0x2c1c9f.headers['Content-Type'] = 'application/json';
+    await doRequest('post', _0x2c1c9f);
+    let _0x4df55c = res;
+
+    if (!_0x4df55c) {
+      return;
+    }
+
+    let _0x1fdd87 = _0x1bd22f == 0 ? '自动兑换' : '手动兑换';
+
+    _0x4df55c.result == 1
+      ? console.log(
+          '🎈' +
+            this.name +
+            '=>兑换方式更改成功，目前兑换方式为：' +
+            _0x1fdd87
+        )
+      : console.log(
+          '🎈' + this.name + '=>兑换方式更改失败：' + _0x4df55c.error_msg
+        );
+  }
+
+
+
+
+
+  //金币兑换奖券
+  async exchangeCoin() {
+    if (this.coinBalance < 100) {
+      console.log('🎈' + this.name + '=>金币余额不足100，不执行兑换');
+      return;
+    }
+
+    let _0x54ee74 =
+        'https://nebula.kuaishou.com/rest/n/nebula/exchange/coinToCash/submit',
+      _0x365938 =
+        '{"coinAmount":' +
+        this.coinBalance +
+        ',"token":"rE2zK-Cmc82uOzxMJW7LI2-wTGcKMqqAHE0PhfN0U4bJY4cAM5Inxw"}',
+      _0x4650af = getOptions(_0x54ee74, this.cookie, _0x365938);
+
+    _0x4650af.headers['Content-Type'] = 'application/json';
+    await doRequest('post', _0x4650af);
+    let _0x2ae7ad = res;
+
+    if (!_0x2ae7ad) {
+      return;
+    }
+
+    if (_0x2ae7ad.result == 1) {
+      let _0x1e5bfa = Math.floor(this.coinBalance / 100) * 100,
+        _0xd2629a = Math.floor(this.coinBalance / 100) / 100;
+
+      console.log(
+        '🎈' +
+          this.name +
+          '=>兑换金币成功，将' +
+          _0x1e5bfa +
+          '金币兑换成' +
+          _0xd2629a +
+          '元'
+      );
+    } else {
+      console.log(
+        '🎈' + this.name + '=>兑换金币失败：' + _0x2ae7ad.error_msg
+      );
+    }
+  }
+
+
+  //获取用户ID
+  async getUserid() {
+    let _0x579d90 =
+        'https://nebula.kuaishou.com/rest/n/nebula/activity/invitation/relationLink?version=1.2.0',
+      _0xb20aec = '',
+      _0x5a5910 = getOptions(_0x579d90, this.cookie, _0xb20aec);
+
+    await doRequest('get', _0x5a5910);
+    let _0x450eae = res;
+
+    if (!_0x450eae) {
+      return;
+    }
+
+    _0x450eae.result == 1
+      ? (this.userId = _0x450eae.data.userId)
+      : console.log(
+          '🎈' + this.name + '=>获取userId失败：' + _0x450eae.error_msg
+        );
+  }
+
+
+
+  
+
+
+  //账号详情
+  async accountInfo() {
+    let _0x308f69 =
+        'https://www.kuaishoupay.com/pay/account/h5/withdraw/account_info',
+      _0xfe05d = 'account_group_key=NEBULA_CASH_ACCOUNT&providers=',
+      _0x52286e = getOptions(_0x308f69, this.cookie, _0xfe05d);
+
+    await doRequest('post', _0x52286e);
+    let _0x25e462 = res;
+
+    if (!_0x25e462) {
+      return;
+    }
+
+    _0x25e462.result == 'SUCCESS'
+      ? (this.needSms = _0x25e462.need_mobile_code)
+      : console.log(
+          '🎈' + this.name + '=>查询账号提现情况失败：' + _0x25e462.error_msg
+        );
+  }
+}
+
+
+
+
+//执行任务，前面的async是异步，现在处理
+!(async () => {
+  if (!(await formatCookie())) {
+    return;
+  }
+  console.log('\n============== 🧨登录🧨 ==============');
+  for (let user of Users) {
+     await user.getUserInfo();
+     await $.wait(500);
+  }
+
+  let CurrentUser = Users.filter((u) => u.valid == true);
+  if (CurrentUser.length == 0) {
+    return;
+  }
+  
+  for (let u of CurrentUser) {
+    console.log('\n=========== 🎈' + u.name + ' 🎈===========');
+    await u.getSignInfo();
+    await $.wait(200);
+    //await u.openBox(false);
+  }
+  console.log('\n============== 🎈账户情况🎈 ==============');
+  for (let u of CurrentUser) {
+    await u.accountOverview();
+    await $.wait(200);
+    await u.accountInfo();
+    await $.wait(200);
+  }
+
+})()
+  .catch((error) => $.logErr(error))
+  .finally(() => $.done());
+async function formatCookie() {
+  if (ksjsbCookie) {
+    for (let ck of ksjsbCookie.split('@')) {
+      if (ck) {
+        Users.push(new ksUser(ck));
+      }
+    }
+    count = Users.length;
+  } else {
+    console.log('未找到CK');
+    return;
+  }
+  console.log('共找到' + count + '个账号');
+  return true;
+}
+function getOptions(url, cookie, body = '') {
+  const options = {
+    url: url,
+    headers: {
+      Cookie: cookie,
+    },
+  };
+  if (body) {
+    options.body = body;
+    options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+  }
+  return options;
+}
+
+  //http请求
+
+async function doRequest(method, options) {
+  res = null;
+  return new Promise((resolve) => {
+    $[method](options, async (err, resp, data) => {
+      try {
+        if (err) {
+          console.log(method + '请求失败');
+          console.log(JSON.stringify(err));
+          $.logErr(err);
+        } else {
+          if (safeGet(data)) {
+            res = JSON.parse(data);
+          }
+        }
+      } catch (error) {
+        $.logErr(error, resp);
+      } finally {
+        resolve();
+      }
+    });
+  });
+}
+
+  //安全获取数据
+function safeGet(data) {
+  try {
+    if (typeof JSON.parse(data) == 'object') {
+      return true;
+    }
+  } catch (e) {
+    console.log(e);
+    console.log(`服务器访问数据为空，请检查自身设备网络情况`);
+    return false;
+  }
+}
+function randomString(e = 12) {
+  let t = 'abcdef0123456789',
+    a = t.length,
+    n = '';
+  for (let i = 0; i < e; i++) n += t.charAt(Math.floor(Math.random() * a));
+  return n;
+}
+var Base64 = {
+  encode: function encode(input) {
+    var _keyStr =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    var output = '';
+    var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+    var i = 0;
+    input = $.util.Charset.utf8_encode(input);
+    while (i < input.length) {
+      chr1 = input.charCodeAt(i++);
+      chr2 = input.charCodeAt(i++);
+      chr3 = input.charCodeAt(i++);
+      enc1 = chr1 >> 2;
+      enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+      enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+      enc4 = chr3 & 63;
+      if (isNaN(chr2)) {
+        enc3 = enc4 = 64;
+      } else if (isNaN(chr3)) {
+        enc4 = 64;
+      }
+      output =
+        output +
+        _keyStr.charAt(enc1) +
+        _keyStr.charAt(enc2) +
+        _keyStr.charAt(enc3) +
+        _keyStr.charAt(enc4);
+    }
+    return output;
+  },
+  decode: function (input) {
+    var _keyStr =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    var output = '';
+    var chr1, chr2, chr3;
+    var enc1, enc2, enc3, enc4;
+    var i = 0;
+    input = input.replace(/[^A-Za-z0-9\+\/\=]/g, '');
+    while (i < input.length) {
+      enc1 = _keyStr.indexOf(input.charAt(i++));
+      enc2 = _keyStr.indexOf(input.charAt(i++));
+      enc3 = _keyStr.indexOf(input.charAt(i++));
+      enc4 = _keyStr.indexOf(input.charAt(i++));
+      chr1 = (enc1 << 2) | (enc2 >> 4);
+      chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+      chr3 = ((enc3 & 3) << 6) | enc4;
+      output = output + String.fromCharCode(chr1);
+      if (enc3 != 64) {
+        output = output + String.fromCharCode(chr2);
+      }
+      if (enc4 != 64) {
+        output = output + String.fromCharCode(chr3);
+      }
+    }
+    output = $.util.Charset.utf8_decode(output);
+    return output;
+  },
+};
+
+
+
+//青龙等模块
+function Env(t, e) {
+  class s {
+    constructor(t) {
+      this.env = t;
+    }
+    send(t, e = 'GET') {
+      t = 'string' == typeof t ? { url: t } : t;
+      let s = this.get;
+      return (
+        'POST' === e && (s = this.post),
+        new Promise((e, i) => {
+          s.call(this, t, (t, s, r) => {
+            t ? i(t) : e(s);
+          });
+        })
+      );
+    }
+    get(t) {
+      return this.send.call(this.env, t);
+    }
+    post(t) {
+      return this.send.call(this.env, t, 'POST');
+    }
+  }
+  return new (class {
+    constructor(t, e) {
+      (this.name = t),
+        (this.http = new s(this)),
+        (this.data = null),
+        (this.dataFile = 'box.dat'),
+        (this.logs = []),
+        (this.isMute = !1),
+        (this.isNeedRewrite = !1),
+        (this.logSeparator = '\n'),
+        (this.startTime = new Date().getTime()),
+        Object.assign(this, e),
+        this.log('', `\ud83d\udd14${this.name}, \u5f00\u59cb!`);
+    }
+    isNode() {
+      return 'undefined' != typeof module && !!module.exports;
+    }
+    isQuanX() {
+      return 'undefined' != typeof $task;
+    }
+    isSurge() {
+      return 'undefined' != typeof $httpClient && 'undefined' == typeof $loon;
+    }
+    isLoon() {
+      return 'undefined' != typeof $loon;
+    }
+    toObj(t, e = null) {
+      try {
+        return JSON.parse(t);
+      } catch {
+        return e;
+      }
+    }
+    toStr(t, e = null) {
+      try {
+        return JSON.stringify(t);
+      } catch {
+        return e;
+      }
+    }
+    getjson(t, e) {
+      let s = e;
+      const i = this.getdata(t);
+      if (i)
+        try {
+          s = JSON.parse(this.getdata(t));
+        } catch {}
+      return s;
+    }
+    setjson(t, e) {
+      try {
+        return this.setdata(JSON.stringify(t), e);
+      } catch {
+        return !1;
+      }
+    }
+    getScript(t) {
+      return new Promise((e) => {
+        this.get({ url: t }, (t, s, i) => e(i));
+      });
+    }
+    runScript(t, e) {
+      return new Promise((s) => {
+        let i = this.getdata('@chavy_boxjs_userCfgs.httpapi');
+        i = i ? i.replace(/\n/g, '').trim() : i;
+        let r = this.getdata('@chavy_boxjs_userCfgs.httpapi_timeout');
+        (r = r ? 1 * r : 20), (r = e && e.timeout ? e.timeout : r);
+        const [o, h] = i.split('@'),
+          a = {
+            url: `http://${h}/v1/scripting/evaluate`,
+            body: { script_text: t, mock_type: 'cron', timeout: r },
+            headers: { 'X-Key': o, Accept: '*/*' },
+          };
+        this.post(a, (t, e, i) => s(i));
+      }).catch((t) => this.logErr(t));
+    }
+    loaddata() {
+      if (!this.isNode()) return {};
+      {
+        (this.fs = this.fs ? this.fs : require('fs')),
+          (this.path = this.path ? this.path : require('path'));
+        const t = this.path.resolve(this.dataFile),
+          e = this.path.resolve(process.cwd(), this.dataFile),
+          s = this.fs.existsSync(t),
+          i = !s && this.fs.existsSync(e);
+        if (!s && !i) return {};
+        {
+          const i = s ? t : e;
+          try {
+            return JSON.parse(this.fs.readFileSync(i));
+          } catch (t) {
+            return {};
+          }
+        }
+      }
+    }
+    writedata() {
+      if (this.isNode()) {
+        (this.fs = this.fs ? this.fs : require('fs')),
+          (this.path = this.path ? this.path : require('path'));
+        const t = this.path.resolve(this.dataFile),
+          e = this.path.resolve(process.cwd(), this.dataFile),
+          s = this.fs.existsSync(t),
+          i = !s && this.fs.existsSync(e),
+          r = JSON.stringify(this.data);
+        s
+          ? this.fs.writeFileSync(t, r)
+          : i
+          ? this.fs.writeFileSync(e, r)
+          : this.fs.writeFileSync(t, r);
+      }
+    }
+    lodash_get(t, e, s) {
+      const i = e.replace(/\[(\d+)\]/g, '.$1').split('.');
+      let r = t;
+      for (const t of i) if (((r = Object(r)[t]), void 0 === r)) return s;
+      return r;
+    }
+    lodash_set(t, e, s) {
+      return Object(t) !== t
+        ? t
+        : (Array.isArray(e) || (e = e.toString().match(/[^.[\]]+/g) || []),
+          (e
+            .slice(0, -1)
+            .reduce(
+              (t, s, i) =>
+                Object(t[s]) === t[s]
+                  ? t[s]
+                  : (t[s] = Math.abs(e[i + 1]) >> 0 == +e[i + 1] ? [] : {}),
+              t
+            )[e[e.length - 1]] = s),
+          t);
+    }
+    getdata(t) {
+      let e = this.getval(t);
+      if (/^@/.test(t)) {
+        const [, s, i] = /^@(.*?)\.(.*?)$/.exec(t),
+          r = s ? this.getval(s) : '';
+        if (r)
+          try {
+            const t = JSON.parse(r);
+            e = t ? this.lodash_get(t, i, '') : e;
+          } catch (t) {
+            e = '';
+          }
+      }
+      return e;
+    }
+    setdata(t, e) {
+      let s = !1;
+      if (/^@/.test(e)) {
+        const [, i, r] = /^@(.*?)\.(.*?)$/.exec(e),
+          o = this.getval(i),
+          h = i ? ('null' === o ? null : o || '{}') : '{}';
+        try {
+          const e = JSON.parse(h);
+          this.lodash_set(e, r, t), (s = this.setval(JSON.stringify(e), i));
+        } catch (e) {
+          const o = {};
+          this.lodash_set(o, r, t), (s = this.setval(JSON.stringify(o), i));
+        }
+      } else s = this.setval(t, e);
+      return s;
+    }
+    getval(t) {
+      return this.isSurge() || this.isLoon()
+        ? $persistentStore.read(t)
+        : this.isQuanX()
+        ? $prefs.valueForKey(t)
+        : this.isNode()
+        ? ((this.data = this.loaddata()), this.data[t])
+        : (this.data && this.data[t]) || null;
+    }
+    setval(t, e) {
+      return this.isSurge() || this.isLoon()
+        ? $persistentStore.write(t, e)
+        : this.isQuanX()
+        ? $prefs.setValueForKey(t, e)
+        : this.isNode()
+        ? ((this.data = this.loaddata()),
+          (this.data[e] = t),
+          this.writedata(),
+          !0)
+        : (this.data && this.data[e]) || null;
+    }
+    initGotEnv(t) {
+      (this.got = this.got ? this.got : require('got')),
+        (this.cktough = this.cktough ? this.cktough : require('tough-cookie')),
+        (this.ckjar = this.ckjar ? this.ckjar : new this.cktough.CookieJar()),
+        t &&
+          ((t.headers = t.headers ? t.headers : {}),
+          void 0 === t.headers.Cookie &&
+            void 0 === t.cookieJar &&
+            (t.cookieJar = this.ckjar));
+    }
+    get(t, e = () => {}) {
+      t.headers &&
+        (delete t.headers['Content-Type'], delete t.headers['Content-Length']),
+        this.isSurge() || this.isLoon()
+          ? (this.isSurge() &&
+              this.isNeedRewrite &&
+              ((t.headers = t.headers || {}),
+              Object.assign(t.headers, { 'X-Surge-Skip-Scripting': !1 })),
+            $httpClient.get(t, (t, s, i) => {
+              !t && s && ((s.body = i), (s.statusCode = s.status)), e(t, s, i);
+            }))
+          : this.isQuanX()
+          ? (this.isNeedRewrite &&
+              ((t.opts = t.opts || {}), Object.assign(t.opts, { hints: !1 })),
+            $task.fetch(t).then(
+              (t) => {
+                const { statusCode: s, statusCode: i, headers: r, body: o } = t;
+                e(null, { status: s, statusCode: i, headers: r, body: o }, o);
+              },
+              (t) => e(t)
+            ))
+          : this.isNode() &&
+            (this.initGotEnv(t),
+            this.got(t)
+              .on('redirect', (t, e) => {
+                try {
+                  if (t.headers['set-cookie']) {
+                    const s = t.headers['set-cookie']
+                      .map(this.cktough.Cookie.parse)
+                      .toString();
+                    this.ckjar.setCookieSync(s, null),
+                      (e.cookieJar = this.ckjar);
+                  }
+                } catch (t) {
+                  this.logErr(t);
+                }
+              })
+              .then(
+                (t) => {
+                  const {
+                    statusCode: s,
+                    statusCode: i,
+                    headers: r,
+                    body: o,
+                  } = t;
+                  e(null, { status: s, statusCode: i, headers: r, body: o }, o);
+                },
+                (t) => {
+                  const { message: s, response: i } = t;
+                  e(s, i, i && i.body);
+                }
+              ));
+    }
+    post(t, e = () => {}) {
+      if (
+        (t.body &&
+          t.headers &&
+          !t.headers['Content-Type'] &&
+          (t.headers['Content-Type'] = 'application/x-www-form-urlencoded'),
+        t.headers && delete t.headers['Content-Length'],
+        this.isSurge() || this.isLoon())
+      )
+        this.isSurge() &&
+          this.isNeedRewrite &&
+          ((t.headers = t.headers || {}),
+          Object.assign(t.headers, { 'X-Surge-Skip-Scripting': !1 })),
+          $httpClient.post(t, (t, s, i) => {
+            !t && s && ((s.body = i), (s.statusCode = s.status)), e(t, s, i);
+          });
+      else if (this.isQuanX())
+        (t.method = 'POST'),
+          this.isNeedRewrite &&
+            ((t.opts = t.opts || {}), Object.assign(t.opts, { hints: !1 })),
+          $task.fetch(t).then(
+            (t) => {
+              const { statusCode: s, statusCode: i, headers: r, body: o } = t;
+              e(null, { status: s, statusCode: i, headers: r, body: o }, o);
+            },
+            (t) => e(t)
+          );
+      else if (this.isNode()) {
+        this.initGotEnv(t);
+        const { url: s, ...i } = t;
+        this.got.post(s, i).then(
+          (t) => {
+            const { statusCode: s, statusCode: i, headers: r, body: o } = t;
+            e(null, { status: s, statusCode: i, headers: r, body: o }, o);
+          },
+          (t) => {
+            const { message: s, response: i } = t;
+            e(s, i, i && i.body);
+          }
+        );
+      }
+    }
+    time(t) {
+      let e = {
+        'M+': new Date().getMonth() + 1,
+        'd+': new Date().getDate(),
+        'H+': new Date().getHours(),
+        'm+': new Date().getMinutes(),
+        's+': new Date().getSeconds(),
+        'q+': Math.floor((new Date().getMonth() + 3) / 3),
+        S: new Date().getMilliseconds(),
+      };
+      /(y+)/.test(t) &&
+        (t = t.replace(
+          RegExp.$1,
+          (new Date().getFullYear() + '').substr(4 - RegExp.$1.length)
+        ));
+      for (let s in e)
+        new RegExp('(' + s + ')').test(t) &&
+          (t = t.replace(
+            RegExp.$1,
+            1 == RegExp.$1.length
+              ? e[s]
+              : ('00' + e[s]).substr(('' + e[s]).length)
+          ));
+      return t;
+    }
+    msg(e = t, s = '', i = '', r) {
+      const o = (t) => {
+        if (!t) return t;
+        if ('string' == typeof t)
+          return this.isLoon()
+            ? t
+            : this.isQuanX()
+            ? { 'open-url': t }
+            : this.isSurge()
+            ? { url: t }
+            : void 0;
+        if ('object' == typeof t) {
+          if (this.isLoon()) {
+            let e = t.openUrl || t.url || t['open-url'],
+              s = t.mediaUrl || t['media-url'];
+            return { openUrl: e, mediaUrl: s };
+          }
+          if (this.isQuanX()) {
+            let e = t['open-url'] || t.url || t.openUrl,
+              s = t['media-url'] || t.mediaUrl;
+            return { 'open-url': e, 'media-url': s };
+          }
+          if (this.isSurge()) {
+            let e = t.url || t.openUrl || t['open-url'];
+            return { url: e };
+          }
+        }
+      };
+      this.isMute ||
+        (this.isSurge() || this.isLoon()
+          ? $notification.post(e, s, i, o(r))
+          : this.isQuanX() && $notify(e, s, i, o(r)));
+      let h = [
+        '',
+        '==============\ud83d\udce3\u7cfb\u7edf\u901a\u77e5\ud83d\udce3==============',
+      ];
+      h.push(e),
+        s && h.push(s),
+        i && h.push(i),
+        console.log(h.join('\n')),
+        (this.logs = this.logs.concat(h));
+    }
+    log(...t) {
+      t.length > 0 && (this.logs = [...this.logs, ...t]),
+        console.log(t.join(this.logSeparator));
+    }
+    logErr(t, e) {
+      const s = !this.isSurge() && !this.isQuanX() && !this.isLoon();
+      s
+        ? this.log('', `\u2757\ufe0f${this.name}, \u9519\u8bef!`, t.stack)
+        : this.log('', `\u2757\ufe0f${this.name}, \u9519\u8bef!`, t);
+    }
+    wait(t) {
+      return new Promise((e) => setTimeout(e, t));
+    }
+    done(t = {}) {
+      const e = new Date().getTime(),
+        s = (e - this.startTime) / 1e3;
+      this.log(
+        '',
+        `\ud83d\udd14${this.name}, \u7ed3\u675f! \ud83d\udd5b ${s} \u79d2`
+      ),
+        this.log(),
+        (this.isSurge() || this.isQuanX() || this.isLoon()) && $done(t);
+    }
+  })(t, e);
